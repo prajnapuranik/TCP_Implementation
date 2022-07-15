@@ -1,11 +1,10 @@
-package TCP_Implementation.SlidingWindowImpl;
+package TCP_Implementation.SlidingWindow;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Random;
 
 //Server
 public class Receiver {
@@ -20,7 +19,8 @@ public class Receiver {
         int SeqNum = 0;
         int count = 0;
 
-        Random rand = new Random();
+        int slideWin = 1;
+        int loopCount = 0;
 
         public void run() throws IOException, InterruptedException {
             receiver = new ServerSocket(1500, 10);
@@ -32,7 +32,7 @@ public class Receiver {
             out = new ObjectOutputStream(conc.getOutputStream());
             in = new ObjectInputStream(conc.getInputStream());
 
-            while (count <= 15) {
+            do{
                 try {
                     pkt = (String) in.readObject();
                     ack = pkt;
@@ -44,9 +44,13 @@ public class Receiver {
                     out.writeObject(ack);
                     out.flush();
                     System.out.println("Sending Ack " + count);
+
+                    loopCount++;
+
                 } catch (Exception e) {
                 }
-            }
+            }while(loopCount < 4);
+
             in.close();
             out.close();
             receiver.close();

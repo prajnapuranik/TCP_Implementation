@@ -1,4 +1,4 @@
-package TCP_Implementation.SlidingWindowImpl;
+package TCP_Implementation.SlidingWindow;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -16,6 +16,10 @@ public class Sender {
         String pkt;
         int SeqNum = 1;
         int ackNum = 0;
+
+        int slideWin = 1;
+        int loopCount = 0;
+
 
         public void sendFrames() throws IOException {
             System.out.println("---------------------------------");
@@ -43,11 +47,13 @@ public class Sender {
                     String Ack = (String)in.readObject();
                     ackNum = Integer.parseInt(Ack);
                     System.out.println("ACK received : " + ackNum);
+                    slideWin *= 2;
+                    loopCount++;
                 }
                 catch(Exception e)
                 {
                 }
-            }while(SeqNum < 15 && getNextSeqNumber() == ackNum);
+            }while(loopCount < slideWin && slideWin < 10 && getNextSeqNumber() == ackNum);
 
 
             in.close();
