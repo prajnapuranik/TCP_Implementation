@@ -1,4 +1,4 @@
-package SlidingWindowImpl;
+package TCP_Implementation.SlidingWindowImpl;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
