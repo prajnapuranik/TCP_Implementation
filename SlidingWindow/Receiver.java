@@ -1,5 +1,6 @@
 package TCP_Implementation.SlidingWindow;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,14 +16,14 @@ public class Receiver {
         ObjectOutputStream out;
         ObjectInputStream in;
 
-        String ack, pkt, data = "";
-        int SeqNum = 0;
+        String ack, pkt= "";
         int count = 0;
-
-        int slideWin = 1;
+        int winSize = 0;
+        //String size= "";
         int loopCount = 0;
+        int seqNum = 0;
 
-        public void run() throws IOException, InterruptedException {
+        public void run() throws IOException, InterruptedException, ClassNotFoundException {
             receiver = new ServerSocket(1500, 10);
             conc = receiver.accept();
 
@@ -32,24 +33,35 @@ public class Receiver {
             out = new ObjectOutputStream(conc.getOutputStream());
             in = new ObjectInputStream(conc.getInputStream());
 
-            do{
+            do {
+
+                //Get sliding window size
                 try {
-                    pkt = (String) in.readObject();
-                    ack = pkt;
-                    count = Integer.parseInt(ack) + 1;
-                    System.out.println("\nMsg received : " + ack);
-                    ack = Integer.toString(count);
-
-                    //to send acknowledgement to client
-                    out.writeObject(ack);
-                    out.flush();
-                    System.out.println("Sending Ack " + count);
-
-                    loopCount++;
-
-                } catch (Exception e) {
+                    String size = (String) in.readObject();
+                    winSize = Integer.parseInt(size);
+                    System.out.println("---------------------------------");
+                    System.out.println("\nWindow size received : " + winSize);
+                    //size = Integer.toString(winSize);
+                }catch(Exception e) {
                 }
-            }while(loopCount < 4);
+
+            loopCount = 0;
+
+           while(loopCount < winSize)
+           {
+               try {
+                   pkt = (String) in.readObject();
+                   ack = pkt;
+                   count = Integer.parseInt(ack) + 1;
+                   System.out.println("\nMsg received : " + ack);
+                   ack = Integer.toString(count);
+                   sendACK(count);
+                   loopCount++;
+               }catch(EOFException e){
+//                   System.out.println("End");
+               }
+           }
+            }while(winSize < 8);
 
             in.close();
             out.close();
@@ -57,7 +69,16 @@ public class Receiver {
             System.out.println("\nConnection Terminated.");
         }
 
-        public static void main(String args[]) throws IOException, InterruptedException {
+        //to send acknowledgement to client
+        private void sendACK(int count){
+            try {
+                out.writeObject(ack);
+                out.flush();
+                System.out.println("Sending Ack " + count);
+            }catch(Exception e){
+            }
+        }
+        public static void main(String args[]) throws IOException, InterruptedException, ClassNotFoundException {
            Receiver R = new Receiver();
            R.run();
         }

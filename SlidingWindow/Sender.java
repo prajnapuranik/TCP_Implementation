@@ -16,45 +16,83 @@ public class Sender {
         String pkt;
         int SeqNum = 1;
         int ackNum = 0;
-
+        int missingSeq = 0;
         int slideWin = 1;
-        int loopCount = 0;
+        boolean flag = false;
 
+        void sendFrameSize() throws IOException {
+            String win = String.valueOf(slideWin);
+            out.writeObject(win);
+            System.out.println("Window size  " + slideWin);
+            out.flush();
+        }
 
         public void sendFrames() throws IOException {
-            System.out.println("---------------------------------");
             pkt = String.valueOf(SeqNum);
             out.writeObject(pkt);
             System.out.println("Sent  " + SeqNum);
             out.flush();
+            SeqNum++;
+            //getNextSeqNumber();
         }
 
+        public void sendLostFrame(int lostSeq) throws IOException {
+
+            System.out.println("-------Lost Packet!-------------");
+            pkt = String.valueOf(lostSeq);
+            out.writeObject(pkt);
+            System.out.println("Sent  " + SeqNum);
+            out.flush();
+
+        }
+
+        //calculate the next sequence number
         int getNextSeqNumber(){
-            return ++SeqNum;
+            return SeqNum;
         }
 
-        public void run() throws IOException
-        {
-            sender = new Socket("localhost",1500);
+        //calculate the previous sequence number to verify ack received
+        int getPrevSeqNumber(){
+            return --SeqNum;
+        }
+
+
+        public void run() throws IOException, ClassNotFoundException {
+            sender = new Socket("localhost", 1500);
 
             out = new ObjectOutputStream(sender.getOutputStream());
             in = new ObjectInputStream(sender.getInputStream());
 
-            do{
-                try
-                {
+            while (slideWin < 15){
+
+                System.out.println("---------------------------------");
+                sendFrameSize();
+
+                int loopCount=0;
+                while (loopCount < slideWin) {
                     sendFrames();
-                    String Ack = (String)in.readObject();
-                    ackNum = Integer.parseInt(Ack);
-                    System.out.println("ACK received : " + ackNum);
-                    slideWin *= 2;
+                    receiveACK();
+
+                    //detect if any packet is missing -> change logic!
+                    if(SeqNum > ackNum){
+                        missingSeq = ackNum;
+                        System.out.println(missingSeq);
+                        flag = true;
+                    }
                     loopCount++;
                 }
-                catch(Exception e)
-                {
-                }
-            }while(loopCount < slideWin && slideWin < 10 && getNextSeqNumber() == ackNum);
 
+                //Modify the sliding window
+                if (SeqNum == ackNum) {
+                    slideWin *= 2;
+                }
+                else if(flag){
+                    //next packet to be sent is packet with the received ACK no
+                    sendLostFrame(missingSeq);
+                    slideWin = slideWin / 2;
+                }
+
+            }
 
             in.close();
             out.close();
@@ -62,8 +100,16 @@ public class Sender {
             System.out.println("\nConnection Terminated");
         }
 
-        public static void main(String as[]) throws IOException
-        {
+        private void receiveACK() {
+            try {
+                String Ack = (String) in.readObject();
+                ackNum = Integer.parseInt(Ack);
+                System.out.println("ACK received : " + ackNum);
+            } catch (Exception e) {
+            }
+        }
+
+        public static void main(String args[]) throws IOException, ClassNotFoundException {
             Sender s = new Sender();
             s.run();
         }
