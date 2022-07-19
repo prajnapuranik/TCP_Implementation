@@ -29,14 +29,15 @@ public class Sender {
 
         public void sendFrames() throws IOException {
 
-            if(SeqNum == 3){
-                SeqNum++;
+            if(SeqNum == 4097){
+                SeqNum+=1024;
             }
             pkt = String.valueOf(SeqNum);
             out.writeObject(pkt);
             System.out.println("Sent  " + SeqNum);
             out.flush();
-            SeqNum++;
+            //SeqNum++;
+            SeqNum=SeqNum+1024;
         }
 
         public void sendLostFrame(int lostSeq) throws IOException {
@@ -47,7 +48,7 @@ public class Sender {
             int lost = Integer.parseInt(pkt);
             System.out.println("Sent  " + lost);
             out.flush();
-
+            flag = false;
             slideWin +=1;
         }
 
@@ -58,13 +59,15 @@ public class Sender {
 
         //calculate the previous sequence number to verify ack received
         int getPrevSeqNumber(){
-            return --SeqNum;
+            //return --SeqNum;
+            return SeqNum - 1024;
         }
 
 
         public void run() throws IOException, ClassNotFoundException {
             sender = new Socket("localhost", 1500);
 
+            //sender = new Socket("192.168.103.124", 1500);
             out = new ObjectOutputStream(sender.getOutputStream());
             in = new ObjectInputStream(sender.getInputStream());
 
@@ -80,7 +83,7 @@ public class Sender {
                     sendFrames();
                     receiveACK();
 
-                    flag = detectPacketLoss();
+                    detectPacketLoss();
                     loopCount++;
                 }
 
@@ -92,7 +95,7 @@ public class Sender {
                 else{
                     //next packet to be sent is packet with the received ACK no
                     //flag = false;
-                    missingSeq = ackNum;
+                    //missingSeq = ackNum;
                     if(slideWin > 1)
                         slideWin = slideWin / 2;
                     sendLostFrame(missingSeq);
@@ -105,8 +108,13 @@ public class Sender {
             System.out.println("\nConnection Terminated");
         }
 
-        private boolean detectPacketLoss() {
-            return SeqNum > ackNum ? true: false;
+        private void detectPacketLoss() {
+            //return SeqNum > ackNum ? true: false;
+            if(SeqNum > ackNum){
+                flag = true;
+                missingSeq = ackNum;
+            }
+
         }
 
         private void receiveACK() {

@@ -73,16 +73,18 @@ public class Receiver {
                                 flag = true;
                                 sendACK(getPrevSeqNum());
                             } else {
-                                sendACK(count + 1);
+                                //sendACK(count + 1);
+                                sendACK(count + 1024);
                             }
-                            seqNum = count + 1;
+                            //seqNum = count + 1;
+                            seqNum = count + 1024;
                             loopCount++;
                         } catch (EOFException e) {
 //                   System.out.println("End");
                         }
                     }
                 }
-            }while(winSize < 5);
+            }while(winSize < 10);
 
             in.close();
             out.close();
