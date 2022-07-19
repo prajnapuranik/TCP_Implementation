@@ -28,22 +28,27 @@ public class Sender {
         }
 
         public void sendFrames() throws IOException {
+
+            if(SeqNum == 3){
+                SeqNum++;
+            }
             pkt = String.valueOf(SeqNum);
             out.writeObject(pkt);
             System.out.println("Sent  " + SeqNum);
             out.flush();
             SeqNum++;
-            //getNextSeqNumber();
         }
 
         public void sendLostFrame(int lostSeq) throws IOException {
 
-            System.out.println("-------Lost Packet!-------------");
+            System.out.println("-----sending lost packet!-------------");
             pkt = String.valueOf(lostSeq);
             out.writeObject(pkt);
-            System.out.println("Sent  " + SeqNum);
+            int lost = Integer.parseInt(pkt);
+            System.out.println("Sent  " + lost);
             out.flush();
 
+            slideWin +=1;
         }
 
         //calculate the next sequence number
@@ -63,35 +68,35 @@ public class Sender {
             out = new ObjectOutputStream(sender.getOutputStream());
             in = new ObjectInputStream(sender.getInputStream());
 
-            while (slideWin < 15){
+            while (slideWin < 5){
 
                 System.out.println("---------------------------------");
                 sendFrameSize();
 
                 int loopCount=0;
+
                 while (loopCount < slideWin) {
+
                     sendFrames();
                     receiveACK();
 
-                    //detect if any packet is missing -> change logic!
-                    if(SeqNum > ackNum){
-                        missingSeq = ackNum;
-                        System.out.println(missingSeq);
-                        flag = true;
-                    }
+                    flag = detectPacketLoss();
                     loopCount++;
                 }
 
                 //Modify the sliding window
-                if (SeqNum == ackNum) {
+                //if (SeqNum == ackNum) {
+                if(!flag){
                     slideWin *= 2;
                 }
-                else if(flag){
+                else{
                     //next packet to be sent is packet with the received ACK no
+                    //flag = false;
+                    missingSeq = ackNum;
+                    if(slideWin > 1)
+                        slideWin = slideWin / 2;
                     sendLostFrame(missingSeq);
-                    slideWin = slideWin / 2;
                 }
-
             }
 
             in.close();
@@ -100,12 +105,16 @@ public class Sender {
             System.out.println("\nConnection Terminated");
         }
 
+        private boolean detectPacketLoss() {
+            return SeqNum > ackNum ? true: false;
+        }
+
         private void receiveACK() {
             try {
                 String Ack = (String) in.readObject();
                 ackNum = Integer.parseInt(Ack);
                 System.out.println("ACK received : " + ackNum);
-            } catch (Exception e) {
+            }catch (Exception e) {
             }
         }
 

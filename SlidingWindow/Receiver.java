@@ -19,9 +19,17 @@ public class Receiver {
         String ack, pkt= "";
         int count = 0;
         int winSize = 0;
-        //String size= "";
         int loopCount = 0;
-        int seqNum = 0;
+        int seqNum = 1;
+        boolean flag = false;
+
+        private int getPrevSeqNum(){
+            return seqNum;
+        }
+
+//        private int getNextSeqNum(){
+//
+//        }
 
         public void run() throws IOException, InterruptedException, ClassNotFoundException {
             receiver = new ServerSocket(1500, 10);
@@ -34,34 +42,47 @@ public class Receiver {
             in = new ObjectInputStream(conc.getInputStream());
 
             do {
+                //make up for packet loss
+                if(flag){
+                    String lostAck = (String) in.readObject();
+                    System.out.println("\nlost message received : " + lostAck);
+                    //seqNum++;
+                    flag = false;
+                }else {
+                    //Get sliding window size
+                    try {
+                        String size = (String) in.readObject();
+                        winSize = Integer.parseInt(size);
+                        System.out.println("---------------------------------");
+                        System.out.println("\nWindow size received : " + winSize);
+                    } catch (Exception e) {
+                    }
 
-                //Get sliding window size
-                try {
-                    String size = (String) in.readObject();
-                    winSize = Integer.parseInt(size);
-                    System.out.println("---------------------------------");
-                    System.out.println("\nWindow size received : " + winSize);
-                    //size = Integer.toString(winSize);
-                }catch(Exception e) {
-                }
+                    loopCount = 0;
 
-            loopCount = 0;
+                    while (loopCount < winSize) {
+                        try {
+                            pkt = (String) in.readObject();
+                            ack = pkt;
+                            System.out.println("\nMsg received : " + ack);
+                            count = Integer.parseInt(ack);
 
-           while(loopCount < winSize)
-           {
-               try {
-                   pkt = (String) in.readObject();
-                   ack = pkt;
-                   count = Integer.parseInt(ack) + 1;
-                   System.out.println("\nMsg received : " + ack);
-                   ack = Integer.toString(count);
-                   sendACK(count);
-                   loopCount++;
-               }catch(EOFException e){
+                            if (count != getPrevSeqNum()) {
+                                //lost packet
+                                System.out.println("Lost packet!");
+                                flag = true;
+                                sendACK(getPrevSeqNum());
+                            } else {
+                                sendACK(count + 1);
+                            }
+                            seqNum = count + 1;
+                            loopCount++;
+                        } catch (EOFException e) {
 //                   System.out.println("End");
-               }
-           }
-            }while(winSize < 8);
+                        }
+                    }
+                }
+            }while(winSize < 5);
 
             in.close();
             out.close();
@@ -72,6 +93,7 @@ public class Receiver {
         //to send acknowledgement to client
         private void sendACK(int count){
             try {
+                ack = Integer.toString(count);
                 out.writeObject(ack);
                 out.flush();
                 System.out.println("Sending Ack " + count);
