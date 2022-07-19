@@ -29,7 +29,7 @@ public class Sender {
 
         public void sendFrames() throws IOException {
 
-            if(SeqNum == 4097){
+            if(SeqNum == 4097 || SeqNum == 7169){
                 SeqNum+=1024;
             }
             pkt = String.valueOf(SeqNum);
@@ -111,8 +111,10 @@ public class Sender {
         private void detectPacketLoss() {
             //return SeqNum > ackNum ? true: false;
             if(SeqNum > ackNum){
-                flag = true;
-                missingSeq = ackNum;
+                if(!flag) {
+                    missingSeq = ackNum;
+                    flag = true;
+                }
             }
 
         }

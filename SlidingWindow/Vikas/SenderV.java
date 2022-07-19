@@ -1,10 +1,12 @@
+package TCP_Implementation.SlidingWindow.Vikas;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 //Client
-public class Sender {
+public class SenderV {
 
         Socket sender;
 
@@ -77,7 +79,7 @@ public class Sender {
 
         public static void main(String as[]) throws IOException
         {
-            Sender s = new Sender();
+            SenderV s = new SenderV();
             s.run();
         }
 }

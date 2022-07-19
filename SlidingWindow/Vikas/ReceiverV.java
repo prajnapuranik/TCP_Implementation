@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 //Server
-public class Receiver {
+public class ReceiverV {
 
         ServerSocket receiver;
         Socket conc = null;
@@ -62,7 +62,7 @@ public class Receiver {
         }
 
         public static void main(String args[]) throws IOException, InterruptedException {
-           Receiver R = new Receiver();
+           ReceiverV R = new ReceiverV();
            R.run();
         }
 }

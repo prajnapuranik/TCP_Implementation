@@ -77,7 +77,7 @@ public class Receiver {
             }
         }
         public static void main(String args[]) throws IOException, InterruptedException, ClassNotFoundException {
-           Receiver R = new Receiver();
+           ReceiverV R = new ReceiverV();
            R.run();
         }
 }
