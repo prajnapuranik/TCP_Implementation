@@ -22,6 +22,8 @@ public class Receiver {
         int loopCount = 0;
         int seqNum = 1;
         boolean flag = false;
+        int receiveCount=0;
+        int sentCount=0;
 
         private int getPrevSeqNum(){
             return seqNum;
@@ -48,19 +50,21 @@ public class Receiver {
                     System.out.println("\nlost message received : " + lostAck);
                     //seqNum++;
                     flag = false;
-                }else {
+                    sentCount++;
+                }else
+                {
                     //Get sliding window size
                     try {
                         String size = (String) in.readObject();
                         winSize = Integer.parseInt(size);
                         System.out.println("---------------------------------");
                         System.out.println("\nWindow size received : " + winSize);
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception e){}
 
                     loopCount = 0;
 
                     while (loopCount < winSize) {
+
                         try {
                             pkt = (String) in.readObject();
                             ack = pkt;
@@ -78,6 +82,15 @@ public class Receiver {
                             }
                             //seqNum = count + 1;
                             seqNum = count + 1024;
+
+                            //Keep track of number of packets received
+                            keepCount();
+
+                            //Calculate goodput for every 1000 segments received
+                            if(receiveCount % 10 == 0) {
+                                calculateGoodPut();
+                            }
+
                             loopCount++;
                         } catch (EOFException e) {
 //                   System.out.println("End");
@@ -90,6 +103,25 @@ public class Receiver {
             out.close();
             receiver.close();
             System.out.println("\nConnection Terminated.");
+        }
+
+        private void keepCount(){
+            //keep count of number of received packets
+            if(seqNum/1024 < receiveCount){
+                //this condition means maximum sliding window is achieved and packet seqNo has been reset to 1
+                receiveCount += (seqNum/1024);
+            }else {
+                //first iteration
+                receiveCount = seqNum / 1024;
+            }
+        }
+
+        private void calculateGoodPut(){
+
+            //System.out.println("Receiver count is: " +receiveCount);
+            if(receiveCount == 5){
+                System.out.println("Good put is:" + receiveCount/(receiveCount + sentCount));
+            }
         }
 
         //to send acknowledgement to client

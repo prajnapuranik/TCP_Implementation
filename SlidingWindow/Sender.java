@@ -29,9 +29,9 @@ public class Sender {
 
         public void sendFrames() throws IOException {
 
-            if(SeqNum == 4097 || SeqNum == 7169){
-                SeqNum+=1024;
-            }
+//            if(SeqNum == 4097 || SeqNum == 7169){
+//                SeqNum+=1024;
+//            }
             pkt = String.valueOf(SeqNum);
             out.writeObject(pkt);
             System.out.println("Sent  " + SeqNum);
