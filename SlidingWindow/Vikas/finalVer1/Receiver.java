@@ -20,8 +20,8 @@ public class Receiver {
         int loopCount = 0;
         int seqNum = 1;
         boolean flag = false;
-        int receiveCount=0;
-        int sentCount=0;
+        double receiveCount=0;
+        double sentCount=0;
 
         private int getPrevSeqNum(){
             return seqNum;
@@ -124,7 +124,8 @@ public class Receiver {
 
         private void calculateGoodPut(){
 
-            // System.out.println("Receiver count is: " +receiveCount);
+            System.out.println("Receiver count is: " +receiveCount);
+            System.out.println("Sender count is: " +sentCount);
             
                 System.out.println("Good put is:" + receiveCount/(receiveCount + sentCount));
         }
