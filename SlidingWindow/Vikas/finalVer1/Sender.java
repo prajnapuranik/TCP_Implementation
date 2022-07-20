@@ -31,11 +31,11 @@ public class Sender {
             randomNumber=(randomNumber*1024)+1; //convert number to a multiple of (1024+1)
         }
         public void sendFrames() throws IOException {
-            // generateRandom();
-            // System.out.println(randomNumber);
-            if(SeqNum == 33793){
+            generateRandom();
+            System.out.println(randomNumber);
+            if(SeqNum == randomNumber){
                  SeqNum+=1024;
-            //     // SeqNum+=1;
+                 // SeqNum+=1;
               }
             pkt = String.valueOf(SeqNum);
             out.writeObject(pkt);
