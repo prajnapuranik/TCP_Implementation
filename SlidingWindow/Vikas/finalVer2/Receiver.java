@@ -28,7 +28,7 @@ public class Receiver {
         double sentNum=0;
         boolean flag = false;
         double goodput=0;
-        double sentCount=0;
+        double resentCount=0;
 
         private int getPrevSeqNum(){
             return seqNum;
@@ -55,7 +55,7 @@ public class Receiver {
                     System.out.println("\nlost message received : " + lostAck);
                     //seqNum++;
                     flag = false;
-                    sentCount++;
+                    resentCount++;
                 }else
                 {
                     //Get sliding window size
@@ -97,10 +97,10 @@ public class Receiver {
                             segNum++;
 
                             //Calculate goodput for every 1000 segments received
-                            if((segNum+sentCount)% 1000 == 0) {
+                            if((segNum+resentCount)% 1000 == 0) {
                                 calculateGoodPut();
                             }
-                            if((segNum+sentCount)% 10000==0){
+                            if((segNum+resentCount)% 10000==0){
                             writeFiles();
                             }
 
@@ -120,9 +120,9 @@ public class Receiver {
 
         private void calculateGoodPut() throws IOException{
             System.out.println("Receive Count is:" + segNum);
-            goodput=segNum/(segNum + sentCount);
+            goodput=segNum/(segNum + resentCount);
             System.out.println("Good put is:" + goodput);
-            System.out.println("Sent Count is:" +sentCount);
+            System.out.println("Sent Count is:" +resentCount);
             File file2=new File("goodput.csv");
             FileWriter fw2 =new FileWriter(file2,true);
             PrintWriter pw2 = new PrintWriter(fw2);
@@ -130,14 +130,14 @@ public class Receiver {
             pw2.close();
         }
         private void writeFiles() throws IOException{
-        File file1=new File("received.csv");
+        File file1=new File("dropped.csv");
         File file3=new File("sent.csv");
         FileWriter fw1 =new FileWriter(file1,true);
         PrintWriter pw1 = new PrintWriter(fw1);
         FileWriter fw3 =new FileWriter(file3,true);
         PrintWriter pw3 = new PrintWriter(fw3);
-        sentNum=segNum+sentCount;
-        pw1.println(segNum+",");
+        sentNum=segNum+resentCount;
+        pw1.println(resentCount+",");
         pw3.println(sentNum+",");
         pw1.close();
         pw3.close();
