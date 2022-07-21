@@ -25,7 +25,7 @@ public class Receiver {
         int loopCount = 0;
         int seqNum = 1;
         int segNum=1;
-        double sentNum=0;
+        double received=0;
         boolean flag = false;
         double goodput=0;
         double resentCount=0;
@@ -131,14 +131,14 @@ public class Receiver {
         }
         private void writeFiles() throws IOException{
         File file1=new File("dropped.csv");
-        File file3=new File("sent.csv");
+        File file3=new File("received.csv");
         FileWriter fw1 =new FileWriter(file1,true);
         PrintWriter pw1 = new PrintWriter(fw1);
         FileWriter fw3 =new FileWriter(file3,true);
         PrintWriter pw3 = new PrintWriter(fw3);
-        sentNum=segNum+resentCount;
+        received=segNum+resentCount;
         pw1.println(resentCount+",");
-        pw3.println(sentNum+",");
+        pw3.println(received+",");
         pw1.close();
         pw3.close();
         }
